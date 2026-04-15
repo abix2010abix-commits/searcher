@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wikipedia Search</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        .search-box {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            display: flex;
+            gap: 10px;
+        }
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            padding: 12px 24px;
+            background: #202124;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #content {
+            margin-top: 30px;
+            max-width: 800px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            display: none;
+            line-height: 1.6;
+        }
+        #content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto 20px;
+            border-radius: 4px;
+        }
+        h1 { margin-top: 0; color: #1a0dab; }
+    </style>
+</head>
+<body>
+
+    <div class="search-box">
+        <input type="text" id="term" placeholder="ابحث عن موضوع...">
+        <button onclick="fetchWiki()">بحث</button>
+    </div>
+
+    <div id="content">
+        <img id="image" src="" style="display:none;">
+        <h1 id="title"></h1>
+        <div id="text"></div>
+    </div>
+
+    <script>
+        async function fetchWiki() {
+            const term = document.getElementById('term').value;
+            if (!term) return;
+
+            const url = `https://ar.wikipedia.org/w/api.php?action=query&format=json&prop=extracts|pageimages&exintro&explaintext&titles=${encodeURIComponent(term)}&pithumbsize=1000&origin=*`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                const pages = data.query.pages;
+                const page = pages[Object.keys(pages)[0]];
+
+                if (page.missing === "") {
+                    alert("الموضوع غير موجود");
+                    return;
+                }
+
+                document.getElementById('title').innerText = page.title;
+                document.getElementById('text').innerText = page.extract;
+                
+                const img = document.getElementById('image');
+                if (page.thumbnail) {
+                    img.src = page.thumbnail.source;
+                    img.style.display = 'block';
+                } else {
+                    img.style.display = 'none';
+                }
+
+                document.getElementById('content').style.display = 'block';
+            } catch (e) {
+                console.error(e);
+            }
+        }
+    </script>
+</body>
+</html>
